@@ -1,8 +1,6 @@
 // app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
-import { Session } from "next-auth";
-
 declare module "next-auth" {
   interface Session {
     user: {
