@@ -20,12 +20,34 @@ import {
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { trackedProducts } from "@/utils/dummyData";
+import { useSession } from "next-auth/react";
 
-export default function DashboardOverview() {
+export default async function DashboardOverview() {
   const [newProductUrl, setNewProductUrl] = useState("");
   const [targetPrice, setTargetPrice] = useState("");
+  const { data: session } = useSession();
+  useEffect(() => {
+    if (session?.user) {
+      try {
+        fetch("/api/save-user", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            discordId: session.user.sub,
+            name: session.user.name,
+            email: session.user.email,
+            avatar: session.user.image,
+          }),
+        });
+      } catch (error) {
+        console.error("Error recording customer pricing query:", error);
+      }
+    }
+  }, [session]);
   const handleAddProduct = () => {
     if (newProductUrl && targetPrice) {
       // Add product logic here

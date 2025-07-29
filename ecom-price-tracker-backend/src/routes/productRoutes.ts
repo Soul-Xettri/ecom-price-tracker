@@ -1,6 +1,3 @@
-// APIs to add product to track
-
-// src/routes/productRoutes.ts
 import express from "express";
 import Product from "../models/Product";
 import { scrapeDarazProduct } from "../services/scraper";
