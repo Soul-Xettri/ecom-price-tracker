@@ -23,4 +23,10 @@ export const AuthDto = [
     .optional()
     .isString()
     .withMessage("Avatar must be a string if provided"),
+
+  body("exp", "Expiration time is required")
+    .exists()
+    .notEmpty()
+    .isISO8601()
+    .withMessage("Expiration time must be a valid ISO8601 date"),
 ];

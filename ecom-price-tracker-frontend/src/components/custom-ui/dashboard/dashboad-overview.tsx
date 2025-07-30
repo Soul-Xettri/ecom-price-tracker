@@ -23,31 +23,54 @@ import {
 import { useEffect, useState } from "react";
 import { trackedProducts } from "@/utils/dummyData";
 import { useSession } from "next-auth/react";
+import { useUserStore } from "@/lib/zustand/useUserStore";
+import useAuthStore from "@/lib/zustand/authStore";
+import Cookies from "js-cookie";
 
-export default async function DashboardOverview() {
+export default function DashboardOverview() {
   const [newProductUrl, setNewProductUrl] = useState("");
   const [targetPrice, setTargetPrice] = useState("");
   const { data: session } = useSession();
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+  const user = useUserStore((state) => state.user);
+  const setTokens = useAuthStore((state) => state.setTokens);
+
   useEffect(() => {
-    if (session?.user) {
+    const saveUserToBackend = async () => {
+      if (!session?.user) return;
+      const token = Cookies.get("accessToken");
+      const sameUser = user?.discordId === session.user.id;
+
+      if (isLoggedIn && sameUser && token) return;
+
       try {
-        fetch("/api/save-user", {
+        const res = await fetch("/api/save-user", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            discordId: session.user.sub,
+            discordId: session.user.id,
             name: session.user.name,
             email: session.user.email,
             avatar: session.user.image,
+            exp: session.expires,
           }),
         });
+
+        if (res.ok) {
+          const data = await res.json();
+          useUserStore.getState().setUser(data.data.user);
+          setTokens(data.data.token);
+        }
       } catch (error) {
-        console.error("Error recording customer pricing query:", error);
+        console.error("Error recording user:", error);
       }
-    }
+    };
+
+    saveUserToBackend();
   }, [session]);
+
   const handleAddProduct = () => {
     if (newProductUrl && targetPrice) {
       // Add product logic here

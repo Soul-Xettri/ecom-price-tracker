@@ -4,6 +4,7 @@ import "express-async-errors";
 import { scrapeDarazProduct } from "./services/scraper";
 import productRoutes from "./routes/productRoutes";
 import authRoutes from "./routes/auth.route";
+import discordRoutes from "./routes/discord.route";
 import { checkProductPrices } from "./services/alert-checker";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
@@ -14,6 +15,7 @@ import { errorHandlerMiddleware } from "./handler";
 import mongoConnection from "./config/dbconnection";
 import morgan from "morgan";
 import requestIp from "request-ip";
+import authMiddleware from "./middleware/authMiddleware";
 
 dotenv.config();
 
@@ -37,9 +39,20 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 app.use(ruid({}));
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/products", productRoutes);
+app.use("/api/v1/discord", authMiddleware, discordRoutes);
+app.use("/api/v1/product", authMiddleware, productRoutes);
 app.use("/healthCheck", healthCheckApp);
 app.use(errorHandlerMiddleware);
+app.get("/test-scrape", async (_req, res) => {
+  const testUrl =
+    "https://www.daraz.com.np/products/unisex-boston-cotton-printed-t-shirt-men-women-i393696052-s1706727176.html?scm=1007.51610.379274.0&pvid=80b8128f-db6b-4e81-9e1d-745a8dd2fa56&search=flashsale&spm=a2a0e.tm80335409.FlashSale.d_393696052";
+  const result = await scrapeDarazProduct(testUrl);
+  res.json(result);
+});
+
+// setInterval(checkProductPrices, 5 * 60 * 1000);
+// checkProductPrices();
+
 app.all("*", (req, res, next) => {
   res.status(404).json({
     status: "fail",
@@ -61,13 +74,3 @@ const server = app.listen(PORT, async () => {
     });
   }
 });
-
-// app.get("/test-scrape", async (_req, res) => {
-//   const testUrl =
-//     "https://www.daraz.com.np/products/unisex-boston-cotton-printed-t-shirt-men-women-i393696052-s1706727176.html?scm=1007.51610.379274.0&pvid=80b8128f-db6b-4e81-9e1d-745a8dd2fa56&search=flashsale&spm=a2a0e.tm80335409.FlashSale.d_393696052";
-//   const result = await scrapeDarazProduct(testUrl);
-//   res.json(result);
-// });
-
-// setInterval(checkProductPrices, 5 * 60 * 1000);
-// checkProductPrices();

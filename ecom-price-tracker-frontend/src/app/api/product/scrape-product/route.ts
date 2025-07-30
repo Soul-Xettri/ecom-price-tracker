@@ -1,22 +1,23 @@
-export async function POST(req: Request) {
+import { NextRequest } from "next/server";
+
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { discordId, name, email, avatar, exp } = body;
+    const { url, ecommercePlatform, desiredPrice } = body;
+    const accessToken = req.cookies.get("accessToken")?.value;
 
     const externalResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/save-user`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          apiKey: process.env.BACKEND_URL_TOKEN,
-          discordId,
-          name,
-          email,
-          avatar,
-          exp,
+          url,
+          ecommercePlatform,
+          desiredPrice,
         }),
       }
     );

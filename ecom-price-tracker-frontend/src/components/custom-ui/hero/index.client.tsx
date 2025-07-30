@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Bot } from "lucide-react";
 import Link from "next/link";
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
+import { useUserStore } from "@/lib/zustand/useUserStore";
+import { useState } from "react";
 
 export default function Hero() {
-  const { data: session } = useSession();
-  console.log("Session data:", session);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+  const [isLoading, setIsLoading] = useState(false);
+
   return (
     <section className="relative overflow-hidden py-20 sm:py-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,25 +32,59 @@ export default function Hero() {
             straight to your Discord server.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button
-              size="lg"
-              onClick={() => signIn("discord")}
-              title="Authorize the Discord bot and start tracking prices"
-              className="bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white px-8 py-3 text-lg animate-bounce cursor-pointer"
-            >
-              <Bot className="w-5 h-5 mr-2" />
-              Invite Bot to Server
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Link href="/dashboard">
-              <Button
-                size="lg"
-                variant="outline"
-                className="px-8 py-3 text-lg border-indigo-200 hover:bg-indigo-50 dark:border-indigo-800 dark:hover:bg-indigo-900 bg-transparent cursor-pointer"
-              >
-                Start Tracking
-              </Button>
-            </Link>
+            {!isLoggedIn ? (
+              <>
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    setIsLoading(true);
+                    signIn("discord", { callbackUrl: "/dashboard" });
+                  }}
+                  title="Authorize the Discord bot and start tracking prices"
+                  className="bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white px-8 py-3 text-lg animate-bounce cursor-pointer"
+                  disabled={isLoading}
+                >
+                  <Bot className="w-5 h-5 mr-2" />
+                  Invite Bot to Server
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    setIsLoading(true);
+                    signIn("discord", { callbackUrl: "/dashboard" });
+                  }}
+                  variant="outline"
+                  className="px-8 py-3 text-lg border-indigo-200 hover:bg-indigo-50 dark:border-indigo-800 dark:hover:bg-indigo-900 bg-transparent cursor-pointer"
+                  disabled={isLoading}
+                >
+                  Start Tracking
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/dashboard/discord">
+                  <Button
+                    size="lg"
+                    title="Authorize the Discord bot and start tracking prices"
+                    className="bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white px-8 py-3 text-lg animate-bounce cursor-pointer"
+                  >
+                    <Bot className="w-5 h-5 mr-2" />
+                    Invite Bot to Server
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
+                <Link href="/dashboard">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="px-8 py-3 text-lg border-indigo-200 hover:bg-indigo-50 dark:border-indigo-800 dark:hover:bg-indigo-900 bg-transparent cursor-pointer"
+                  >
+                    Start Tracking
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -1,15 +1,28 @@
-// Mongoose schema
+import mongoose from "mongoose";
 
-// src/models/Product.ts
-import { Schema, model } from 'mongoose';
+const productSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "User",
+    },
+    url: String,
+    ecommercePlatform: {
+      type: String,
+      enum: ["daraz", "amazon", "flipkart"],
+      default: "daraz",
+    },
+    title: String,
+    originalPrice: Number,
+    discountPrice: String,
+    currentPrice: Number,
+    desiredPrice: Number,
+    imageUrls: [String],
+    mainImageUrl: [String],
+    alertSent: { type: Boolean, default: false },
+  },
+  { timestamps: true }
+);
 
-const productSchema = new Schema({
-  url: String,
-  title: String,
-  currentPrice: Number,
-  desiredPrice: Number,
-  alertSent: { type: Boolean, default: false },
-  userId: String, // discord user id or channel id
-});
-
-export default model('Product', productSchema);
+export const Product = mongoose.model("Product", productSchema);

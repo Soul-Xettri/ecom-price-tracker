@@ -2,8 +2,9 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import TopNav from "@/components/custom-ui/nav-component/top-nav";
 import { Providers } from "./providers";
+import NextTopLoader from "nextjs-toploader";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +24,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        <Toaster richColors />
+        <NextTopLoader color="#122173" showSpinner={false} />
         <Providers>{children}</Providers>
       </body>
     </html>

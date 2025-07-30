@@ -1,30 +1,16 @@
 import express from "express";
-import Product from "../models/Product";
-import { scrapeDarazProduct } from "../services/scraper";
-
+import { scrapeProductDto } from "../dto/product.dto";
+import handleValidationErrors from "../middleware/handleValidationErrors";
+import ProductController from "../controllers/product.controller";
 const router = express.Router();
 
-router.post("/", async (req, res) => {
-  const { url, desiredPrice, userId } = req.body;
+router.post(
+  "/",
+  scrapeProductDto,
+  handleValidationErrors(),
+  ProductController.scrapeProduct
+);
 
-  const scraped = await scrapeDarazProduct(url);
-  if (!scraped)
-    return res.status(400).json({ error: "Failed to scrape product" });
-
-  const product = await Product.create({
-    url,
-    title: scraped.title,
-    currentPrice: scraped.price,
-    desiredPrice,
-    userId,
-  });
-
-  res.json(product);
-});
-
-router.get("/", async (_req, res) => {
-  const products = await Product.find();
-  res.json(products);
-});
+router.get("/", ProductController.getProductsByUserId);
 
 export default router;

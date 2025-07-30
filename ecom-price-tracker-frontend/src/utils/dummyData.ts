@@ -1,5 +1,5 @@
 // Mock data
-export const trackedProducts = [
+export const trackedProductsDummy = [
   {
     id: 1,
     name: "iPhone 15 Pro Max 256GB",

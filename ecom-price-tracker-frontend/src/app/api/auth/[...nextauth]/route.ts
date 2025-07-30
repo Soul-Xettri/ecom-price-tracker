@@ -1,4 +1,3 @@
-// app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 declare module "next-auth" {
@@ -9,6 +8,8 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       sub?: string | null;
+      iat?: number;
+      exp?: number;
     };
   }
 }
@@ -20,7 +21,16 @@ const handler = NextAuth({
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
     }),
   ],
+  session: {
+    strategy: "jwt",
+  },
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub;
