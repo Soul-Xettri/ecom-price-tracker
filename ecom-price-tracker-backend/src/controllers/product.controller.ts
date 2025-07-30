@@ -26,6 +26,40 @@ const ProductController = {
       },
     });
   }),
+
+  updateDesiredPrice: asyncWrapper(async (req, res) => {
+    const userId = req.user.id;
+    const productId = req.params.productId;
+    const desiredPrice = req.body.desiredPrice;
+    const updatedProduct = await ProductService.updateDesiredPrice(
+      userId,
+      productId,
+      desiredPrice
+    );
+    return res.status(200).json({
+      status: "success",
+      data: {
+        message: "Desired price updated successfully",
+        product: updatedProduct,
+      },
+    });
+  }),
+
+  toggleProductStatus: asyncWrapper(async (req, res) => {
+    const userId = req.user.id;
+    const productId = req.params.productId;
+    const updatedProduct = await ProductService.toggleProductStatus(
+      userId,
+      productId
+    );
+    return res.status(200).json({
+      status: "success",
+      data: {
+        message: updatedProduct.message,
+        product: updatedProduct.product,
+      },
+    });
+  }),
 };
 
 export default ProductController;

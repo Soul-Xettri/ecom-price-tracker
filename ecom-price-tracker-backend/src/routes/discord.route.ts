@@ -19,5 +19,6 @@ router.put(
   handleValidationErrors(),
   DiscordController.updateServer
 );
+router.delete("/:serverId", DiscordController.deleteServer);
 
 export default router;

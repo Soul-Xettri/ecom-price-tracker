@@ -52,6 +52,19 @@ const DiscordController = {
       },
     });
   }),
+
+  deleteServer: asyncWrapper(async (req, res) => {
+    const userId = req.user.id;
+    const serverId = req.params.serverId;
+    const deletedServer = await DiscordService.deleteServer(userId, serverId);
+    return res.status(200).json({
+      status: "success",
+      data: {
+        message: "Discord server deleted successfully",
+        server: deletedServer,
+      },
+    });
+  }),
 };
 
 export default DiscordController;

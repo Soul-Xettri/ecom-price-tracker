@@ -133,6 +133,17 @@ class DiscordService {
     await server.save();
     return server;
   }
+
+  static async deleteServer(userId: string, serverId: string) {
+    const server = await DiscordServer.findOneAndDelete({
+      _id: serverId,
+      userId,
+    });
+    if (!server) {
+      throw new DataNotFoundError("Discord server not found");
+    }
+    return server;
+  }
 }
 
 export default DiscordService;

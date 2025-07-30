@@ -12,22 +12,17 @@ class ProductService {
     }
   ) {
     const { url, ecommercePlatform, desiredPrice } = dto;
-
-    console.log("dto:", dto);
-
-    console.log("Starting product scrape for URL:", url);
-    console.log("E-commerce Platform:", ecommercePlatform);
-    console.log("Desired Price:", desiredPrice);
+    if (desiredPrice < 0) {
+      throw new BadRequestError("Desired price cannot be negative");
+    }
 
     const browser = await puppeteer.launch({ headless: true });
 
     const page = await browser.newPage();
     await page.setUserAgent("Mozilla/5.0");
     await page.goto(url, { waitUntil: "networkidle2" });
-    console.log("Scraping product data...");
     let data;
     if (ecommercePlatform === "daraz") {
-      console.log("Scraping Daraz product...");
       data = await page.evaluate(() => {
         const title = document.title;
 
@@ -113,6 +108,59 @@ class ProductService {
   static async getProductsByUserId(userId: string) {
     const products = await Product.find({ userId }).sort({ createdAt: -1 });
     return products;
+  }
+
+  static async updateDesiredPrice(
+    userId: string,
+    productId: string,
+    desiredPrice: number
+  ) {
+    const product = await Product.findOne({ _id: productId, userId });
+    if (!product) {
+      throw new BadRequestError("Product not found");
+    }
+    if (product.alertSent) {
+      throw new BadRequestError(
+        "Cannot update desired price for a product that has already sent an alert."
+      );
+    }
+    if (desiredPrice < 0) {
+      throw new BadRequestError("Desired price cannot be negative");
+    }
+    if (
+      product.currentPrice !== null &&
+      product.currentPrice !== undefined &&
+      product.currentPrice < desiredPrice
+    ) {
+      throw new BadRequestError(
+        `Current price ${product.currentPrice} is already less than desired price ${desiredPrice}.`
+      );
+    }
+    product.desiredPrice = desiredPrice;
+    await product.save();
+    return product;
+  }
+
+  static async toggleProductStatus(userId: string, productId: string) {
+    const product = await Product.findOne({ _id: productId, userId });
+    if (!product) {
+      throw new BadRequestError("Product not found");
+    }
+    if (!product.isActive && product.alertSent) {
+      throw new BadRequestError(
+        "Cannot activate a product that has already sent an alert."
+      );
+    }
+    product.isActive = !product.isActive;
+    await product.save();
+    return {
+      message: `${
+        product.isActive
+          ? "Product tracking activated successfully"
+          : "Product tracking deactivated successfully"
+      }`,
+      product,
+    };
   }
 }
 

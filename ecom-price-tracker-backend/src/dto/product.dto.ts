@@ -19,3 +19,17 @@ export const scrapeProductDto = [
     .isNumeric()
     .withMessage("Desired Price must be a number"),
 ];
+
+export const updateDesiredPriceDto = [
+  body("desiredPrice")
+    .optional()
+    .isNumeric()
+    .withMessage("Desired Price must be a number"),
+];
+
+export const updateProductStatusDto = [
+  body("isActive")
+    .optional()
+    .isBoolean()
+    .withMessage("isActive must be a boolean"),
+];

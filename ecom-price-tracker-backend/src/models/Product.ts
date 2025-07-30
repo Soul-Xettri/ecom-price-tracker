@@ -21,6 +21,7 @@ const productSchema = new mongoose.Schema(
     imageUrls: [String],
     mainImageUrl: [String],
     alertSent: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
