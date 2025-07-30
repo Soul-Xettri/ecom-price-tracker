@@ -1,5 +1,6 @@
 import { User } from "../models/User";
 import generateToken from "../utils/jwttoken";
+import SettingService from "./setting.service";
 
 class AuthService {
   static async saveUser(dto: {
@@ -16,6 +17,11 @@ class AuthService {
       { name, email, avatar, exp, lastLogin: new Date() },
       { upsert: true, new: true }
     );
+
+    await SettingService.upsert(user._id, {
+      frequency: "daily",
+      emailAlert: false,
+    });
 
     return {
       user: user,

@@ -21,11 +21,12 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { trackedProducts } from "@/utils/dummyData";
+import { trackedProductsDummy } from "@/utils/dummyData";
 import { useSession } from "next-auth/react";
 import { useUserStore } from "@/lib/zustand/useUserStore";
 import useAuthStore from "@/lib/zustand/authStore";
 import Cookies from "js-cookie";
+import Image from "next/image";
 
 export default function DashboardOverview() {
   const [newProductUrl, setNewProductUrl] = useState("");
@@ -209,15 +210,21 @@ export default function DashboardOverview() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {trackedProducts.slice(0, 3).map((product) => (
+                {trackedProductsDummy.slice(0, 3).map((product) => (
                   <div
                     key={product.id}
                     className="flex items-center space-x-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow"
                   >
-                    <img
-                      src={product.image || "/placeholder.svg"}
+                    <Image
+                      src={product.image || "/placeholder.png"}
                       alt={product.name}
+                      width={64}
+                      height={64}
                       className="w-16 h-16 object-cover rounded-lg"
+                      unoptimized={false}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/placeholder.png";
+                      }}
                     />
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900 dark:text-white">

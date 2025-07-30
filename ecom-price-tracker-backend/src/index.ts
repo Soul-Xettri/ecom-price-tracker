@@ -4,6 +4,7 @@ import "express-async-errors";
 import { scrapeDarazProduct } from "./services/scraper";
 import productRoutes from "./routes/productRoutes";
 import authRoutes from "./routes/auth.route";
+import settingRoutes from "./routes/setting.route";
 import discordRoutes from "./routes/discord.route";
 import { checkProductPrices } from "./services/alert-checker";
 import helmet from "helmet";
@@ -41,6 +42,7 @@ app.use(ruid({}));
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/discord", authMiddleware, discordRoutes);
 app.use("/api/v1/product", authMiddleware, productRoutes);
+app.use("/api/v1/settings", authMiddleware, settingRoutes);
 app.use("/healthCheck", healthCheckApp);
 app.use(errorHandlerMiddleware);
 app.get("/test-scrape", async (_req, res) => {

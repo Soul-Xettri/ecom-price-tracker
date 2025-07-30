@@ -28,7 +28,6 @@ import Link from "next/link";
 
 export default function TrackedProductOverview() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [newProductUrl, setNewProductUrl] = useState("");
   const [targetPrice, setTargetPrice] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState("daraz");
@@ -161,14 +160,14 @@ export default function TrackedProductOverview() {
         <CardContent className="p-6">
           <div className="flex items-start space-x-4">
             <Image
-              src={product.mainImageUrl[0] || "/placeholder.svg"}
+              src={product.mainImageUrl[0] || "/placeholder.png"}
               alt={product.title}
               width={200}
               height={200}
               className="w-50 h-50 object-cover rounded-lg"
               unoptimized={false}
               onError={(e) => {
-                (e.target as HTMLImageElement).src = "/placeholder.svg";
+                (e.target as HTMLImageElement).src = "/placeholder.png";
               }}
             />
             <div className="flex-1">
@@ -179,10 +178,13 @@ export default function TrackedProductOverview() {
                 <Badge
                   variant="outline"
                   className={
-                    product.ecommercePlatform === "daraz" ? "bg-orange-400" : ""
+                    product.ecommercePlatform === "daraz"
+                      ? "bg-orange-400"
+                      : product.ecommercePlatform === "ebay"
+                      ? "bg-green-400"
+                      : "bg-blue-400"
                   }
                 >
-                  {product.ecommercePlatform}
                   {product.ecommercePlatform}
                 </Badge>
                 <Badge
@@ -209,6 +211,14 @@ export default function TrackedProductOverview() {
                 </Badge>
               </div>
               <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Tracked Date:
+                  </span>
+                  <span className="flex items-center">
+                    {new Date(product.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-500 dark:text-gray-400">
                     Original Price:
@@ -221,7 +231,17 @@ export default function TrackedProductOverview() {
                           : ""
                       }
                     >
-                      ${product.originalPrice}
+                      {product.currency}
+                      {product.originalPrice}
+                      {typeof product.originalDecimal === "number" &&
+                        product.originalDecimal > 0 && (
+                          <span>
+                            .
+                            {product.originalDecimal
+                              .toString()
+                              .padStart(2, "0")}
+                          </span>
+                        )}
                     </span>
                     {product.discountPrice && (
                       <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold">
@@ -235,7 +255,14 @@ export default function TrackedProductOverview() {
                     Current Price:
                   </span>
                   <span className="font-bold text-lg text-gray-900 dark:text-white">
-                    ${product.currentPrice}
+                    {product.currency}
+                    {product.currentPrice}
+                    {typeof product.currentDecimal === "number" &&
+                      product.currentDecimal > 0 && (
+                        <span>
+                          .{product.currentDecimal.toString().padStart(2, "0")}
+                        </span>
+                      )}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -243,7 +270,8 @@ export default function TrackedProductOverview() {
                     Target Price:
                   </span>
                   <span className="font-medium text-indigo-600">
-                    ${updatedDesiredPrice}
+                    {product.currency}
+                    {updatedDesiredPrice}
                   </span>
                 </div>
               </div>
@@ -311,7 +339,11 @@ export default function TrackedProductOverview() {
                     <Button
                       type="button"
                       onClick={handleSave}
-                      disabled={isUpdating || stopTrackingInProgress || product.alertSent}
+                      disabled={
+                        isUpdating ||
+                        stopTrackingInProgress ||
+                        product.alertSent
+                      }
                       className="bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 cursor-pointer"
                     >
                       Save Settings
@@ -390,7 +422,7 @@ export default function TrackedProductOverview() {
                       </DialogTitle>
 
                       <DialogDescription className="font-[400] text-[14px] text-gray-500">
-                        Paste a product URL from Amazon, Daraz, or Flipkart to
+                        Paste a product URL from Ebay, Daraz, or Flipkart to
                         start tracking
                       </DialogDescription>
                     </div>
@@ -402,7 +434,7 @@ export default function TrackedProductOverview() {
                 </DialogHeader>
                 <hr />
                 <div className="grid grid-cols-1 md:grid-cols-3 ">
-                  {["daraz", "amazon", "flipkart"].map((platform) => (
+                  {["daraz", "ebay", "flipkart"].map((platform) => (
                     <div className="flex items-center" key={platform}>
                       <Input
                         type="radio"
@@ -424,7 +456,7 @@ export default function TrackedProductOverview() {
                     <Label htmlFor="product-url">Product URL</Label>
                     <Input
                       id="product-url"
-                      placeholder="https://www.amazon.com/product-name/dp/..."
+                      placeholder="https://www.ebay.com/product-name/dp/..."
                       value={newProductUrl}
                       onChange={(e: any) => setNewProductUrl(e.target.value)}
                       className="mt-1"
