@@ -185,7 +185,7 @@ export default function TrackedProductOverview() {
                       : "bg-blue-400"
                   }
                 >
-                  {product.ecommercePlatform}
+                  {product.ecommercePlatform.toUpperCase()}
                 </Badge>
                 <Badge
                   variant={
@@ -429,7 +429,7 @@ export default function TrackedProductOverview() {
                   </div>
                   <div className="text-xs text-gray-400 mt-1">
                     Note: Scraping may take a few minutes depending on the
-                    network and product.
+                    network and platform.
                   </div>
                 </DialogHeader>
                 <hr />
