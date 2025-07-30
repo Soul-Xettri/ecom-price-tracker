@@ -21,7 +21,6 @@ import {
   Loader,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { trackedProductsDummy } from "@/utils/dummyData";
 import { useSession } from "next-auth/react";
 import { useUserStore } from "@/lib/zustand/useUserStore";
 import useAuthStore from "@/lib/zustand/authStore";
@@ -37,7 +36,6 @@ export default function DashboardOverview() {
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const user = useUserStore((state) => state.user);
   const setTokens = useAuthStore((state) => state.setTokens);
-  const [isLoading, setIsLoading] = useState(true);
   const [trackedProducts, setTrackedProducts] = useState<any[]>([]);
   const [isScraping, setIsScraping] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState("daraz");
@@ -73,7 +71,6 @@ export default function DashboardOverview() {
     } catch (error) {
       console.error("Error recording user:", error);
       toast.error("Failed to save user data");
-      setIsLoading(false);
     }
   };
 
@@ -85,19 +82,16 @@ export default function DashboardOverview() {
       },
     });
     if (!response.ok) {
-      setIsLoading(false);
       toast.error("Failed to load dashboard data");
       return;
     }
     const data = await response.json();
     setTrackedProducts(data.data.products || []);
-    setIsLoading(false);
+    toast.success("Dashboard data loaded successfully");
   };
 
   useEffect(() => {
-    saveUserToBackend();
     fetchTrackedProducts();
-    toast.success("Dashboard data loaded successfully");
   }, [session]);
 
   const handleAddProduct = async () => {
@@ -152,7 +146,7 @@ export default function DashboardOverview() {
           {/* Welcome Section */}
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Welcome back, John! 👋
+              Welcome back, {session?.user.name}! 👋
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
               Here's what's happening with your tracked products
