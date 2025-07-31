@@ -395,21 +395,21 @@ export default function DashboardOverview() {
                           </span>
                           <Badge
                             variant={
-                              !product.isActive
+                              !product.isActive && !product.alertSent
                                 ? "default"
                                 : product.alertSent
                                 ? "default"
                                 : "secondary"
                             }
                             className={
-                              !product.isActive
+                              !product.isActive && !product.alertSent
                                 ? "bg-gradient-to-r from-red-500 to-red-600"
                                 : product.alertSent
                                 ? "bg-gradient-to-r from-green-500 to-green-600"
                                 : "bg-gradient-to-r from-indigo-500 to-cyan-500"
                             }
                           >
-                            {!product.isActive
+                            {!product.isActive && !product.alertSent
                               ? "Stopped"
                               : product.alertSent
                               ? "Price Dropped!"

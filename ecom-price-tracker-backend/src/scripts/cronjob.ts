@@ -5,7 +5,8 @@ import pLimit from "p-limit";
 
 let isRunning = false;
 
-const cronJob = cron.schedule("0 0 * * *", async () => {
+const cronJob = cron.schedule("0 0 * * *", async () => { // Runs every day at midnight
+
   if (isRunning) {
     console.warn("⏳ Previous cron job still running. Skipping new run.");
     return;

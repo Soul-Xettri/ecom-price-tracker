@@ -2,7 +2,7 @@ import puppeteer from "puppeteer";
 import BadRequestError from "../errors/BadRequestError";
 import { Product } from "../models/Product";
 
-class ProductService {  
+class ProductService {
   static async scrapeProduct(
     userId: string,
     dto: {
@@ -143,15 +143,19 @@ class ProductService {
 
           // Discount
           let discountPrice = null;
-          const discountElement = document.querySelector(
-            ".x-additional-info__item--2"
-          );
-          if (discountElement && discountElement.textContent) {
-            // Extract only the discount percentage (e.g., "34% off")
-            const match = discountElement.textContent.match(/\d+% off/);
-            discountPrice = match
-              ? match[0]
-              : discountElement.textContent.trim();
+          const discountSelectors = [
+            ".x-additional-info__item--2",
+            ".ux-textspans.ux-textspans--EMPHASIS",
+          ];
+          for (const discountSelector of discountSelectors) {
+            const discountElement = document.querySelector(discountSelector);
+            if (discountElement && discountElement.textContent) {
+              // Extract only the discount percentage (e.g., "34% off")
+              const match = discountElement.textContent.match(/\d+% off/);
+              discountPrice = match
+                ? match[0]
+                : discountElement.textContent.trim();
+            }
           }
 
           // Images
