@@ -472,8 +472,9 @@ export default function TrackedProductOverview() {
                   </div>
                   <p>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      <strong>Note:</strong> Scraping may take a few minutes
-                      depending on the network and platform.
+                      <strong>Note:</strong> Scraping may take a few minutes or
+                      even fail depending on the network and platform but you
+                      can always retry.
                     </span>
                   </p>
                 </DialogHeader>
