@@ -12,14 +12,7 @@ export default withAuth(
     const session = (req as any).nextauth?.token;
 
     if (!session) {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-
-    const now = Date.now();
-    const expires = new Date(session.exp! * 1000);
-
-    if (expires.getTime() < now) {
-      return NextResponse.redirect(new URL("/", req.url));
+      return NextResponse.redirect(new URL("/?session-empty=true", req.url));
     }
 
     return NextResponse.next();

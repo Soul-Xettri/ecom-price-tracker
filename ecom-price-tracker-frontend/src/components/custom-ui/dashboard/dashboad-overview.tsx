@@ -98,10 +98,10 @@ export default function DashboardOverview() {
   };
 
   useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
     const saveAndFetch = async () => {
       await saveUserToBackend();
+      if (hasFetched.current) return;
+      hasFetched.current = true;
       // Wait for user to be saved before fetching products
       await fetchTrackedProducts();
     };

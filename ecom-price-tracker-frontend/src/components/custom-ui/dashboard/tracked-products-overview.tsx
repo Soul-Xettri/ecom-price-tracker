@@ -110,6 +110,7 @@ export default function TrackedProductOverview() {
     fetchTrackedProducts();
     toast.success("Product tracking started successfully");
   };
+  
 
   const TrackedProductCard = ({ product }: { product: any }) => {
     const [localDialogOpen, setLocalDialogOpen] = useState(false);
@@ -534,7 +535,7 @@ export default function TrackedProductOverview() {
           ) : trackedProducts.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {trackedProducts.map((product) => (
-                <TrackedProductCard key={product.id} product={product} />
+                <TrackedProductCard key={product._id} product={product} />
               ))}
             </div>
           ) : (

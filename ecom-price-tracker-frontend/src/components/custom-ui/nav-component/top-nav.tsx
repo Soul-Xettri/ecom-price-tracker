@@ -26,15 +26,28 @@ export default function TopNav() {
   const user = useUserStore((state) => state.user);
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
+
   useEffect(() => {
-    const sessionExpired = searchParams.get("session-expired");
-    const logout = searchParams.get("logout");
-    if (sessionExpired) {
-      toast.error("Login session expired. Please log in again.");
-    }
-    if (logout) {
-      toast.success("Logged out successfully.");
-    }
+    const checkSession = async () => {
+      const sessionExpired = searchParams.get("session-expired");
+      const logout = searchParams.get("logout");
+      const emptySession = searchParams.get("session-empty");
+      if (sessionExpired) {
+        toast.error("Login session expired. Please log in again.");
+        return;
+      }
+      if (logout) {
+        toast.success("Logged out successfully.");
+        return;
+      }
+      if (emptySession) {
+        useUserStore.getState().logout();
+        useAuthStore.getState().logout();
+        await signOut({ callbackUrl: "/?session-expired=true" });
+        return;
+      }
+    };
+    checkSession();
   }, [searchParams]);
   return (
     <>
