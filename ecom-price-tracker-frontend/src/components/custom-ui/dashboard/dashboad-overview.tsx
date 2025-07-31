@@ -154,9 +154,6 @@ export default function DashboardOverview() {
     : 0;
   const moneySaved = trackedProducts.reduce((total, product) => {
     if (product.alertSent) {
-      console.log("total:", total);
-      console.log("product.originalPrice:", product.originalPrice);
-      console.log("product.currentPrice:", product.currentPrice);
       return total + (product.originalPrice - product.currentPrice);
     }
     return total;
