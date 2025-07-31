@@ -20,7 +20,7 @@ import {
   TrendingUp,
   Loader,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { useUserStore } from "@/lib/zustand/useUserStore";
 import useAuthStore from "@/lib/zustand/authStore";
@@ -39,6 +39,7 @@ export default function DashboardOverview() {
   const [trackedProducts, setTrackedProducts] = useState<any[]>([]);
   const [isScraping, setIsScraping] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState("daraz");
+  const hasFetched = useRef(false);
 
   const saveUserToBackend = async () => {
     if (!session?.user) return;
@@ -97,6 +98,8 @@ export default function DashboardOverview() {
   };
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     const saveAndFetch = async () => {
       await saveUserToBackend();
       // Wait for user to be saved before fetching products

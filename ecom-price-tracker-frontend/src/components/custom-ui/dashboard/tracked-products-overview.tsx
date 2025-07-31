@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -37,6 +37,7 @@ export default function TrackedProductOverview() {
   const [isScraping, setIsScraping] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [trackedProducts, setTrackedProducts] = useState<any[]>([]);
+  const hasFetched = useRef(false);
 
   const fetchTrackedProducts = async () => {
     const response = await fetch("/api/product/fetch-products", {
@@ -60,12 +61,14 @@ export default function TrackedProductOverview() {
     const data = await response.json();
     setTrackedProducts(data.data.products || []);
     setIsLoading(false);
+    toast.success("Tracked products fetched successfully");
   };
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     setIsLoading(true);
     fetchTrackedProducts();
-    toast.success("Tracked products fetched successfully");
   }, []);
 
   const handleAddProduct = async () => {

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, Bot, Loader, Server } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
@@ -37,6 +37,7 @@ import { signOut } from "next-auth/react";
 export default function DiscordBotOverview() {
   const [isLoading, setIsLoading] = useState(true);
   const [servers, setServers] = useState<any[]>([]);
+  const hasFetched = useRef(false);
   const fetchDiscordServers = async () => {
     const response = await fetch("/api/discord/fetch-servers", {
       method: "GET",
@@ -45,7 +46,7 @@ export default function DiscordBotOverview() {
       },
     });
     if (response.status === 401 || response.status === 403) {
-      setIsLoading(false)
+      setIsLoading(false);
       useUserStore.getState().logout();
       useAuthStore.getState().logout();
       await signOut({ callbackUrl: "/?session-expired=true" });
@@ -59,12 +60,14 @@ export default function DiscordBotOverview() {
     const data = await response.json();
     setServers(data.data.servers);
     setIsLoading(false);
+    toast.success("Discord servers fetched successfully");
   };
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     setIsLoading(true);
     fetchDiscordServers();
-    toast.success("Discord servers fetched successfully");
   }, []);
 
   const ServerCards = ({ server }: { server: any }) => {

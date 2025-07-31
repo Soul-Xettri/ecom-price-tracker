@@ -13,7 +13,7 @@ import useAuthStore from "@/lib/zustand/authStore";
 import { useUserStore } from "@/lib/zustand/useUserStore";
 import { Loader } from "lucide-react";
 import { signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 export default function SettingOverview() {
@@ -22,6 +22,7 @@ export default function SettingOverview() {
     frequency: "daily",
     emailAlert: false,
   });
+  const hasFetched = useRef(false);
   const fetchSettings = async () => {
     const response = await fetch("/api/setting/fetch", {
       method: "GET",
@@ -46,11 +47,13 @@ export default function SettingOverview() {
       emailAlert: data.data.setting.emailAlert,
     });
     setIsLoading(false);
+    toast.success("Settings fetched successfully");
   };
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     setIsLoading(true);
     fetchSettings();
-    toast.success("Settings fetched successfully");
   }, []);
   interface Settings {
     frequency: string;
