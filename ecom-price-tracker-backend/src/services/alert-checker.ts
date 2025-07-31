@@ -1,124 +1,127 @@
-// // Compares price & sends alert
-// // src/services/alert-checker.ts
-// import Product from "../models/Product";
-// import { scrapeDarazProduct } from "./scraper";
-// import { sendDiscordAlert } from "../bot/discordBot"; // placeholder function
-
-// export const checkProductPrices = async () => {
-//   console.log("🔁 Checking product prices...");
-//   const products = await Product.find({ alertSent: false });
-
-//   for (const product of products) {
-//     try {
-//       console.log(`Checking product: ${product.title}`);
-//       if (!product.url) {
-//         console.warn(`Product ${product.title} has no URL, skipping.`);
-//         continue;
-//       }
-//       const scraped = await scrapeDarazProduct(product.url);
-//       if (!scraped) continue;
-
-//       const { price } = scraped;
-
-//       const numericPrice = price !== null ? Number(price) : null;
-//       const desiredPrice = product.desiredPrice;
-
-//       if (
-//         numericPrice !== null &&
-//         !isNaN(numericPrice) &&
-//         desiredPrice !== null &&
-//         desiredPrice !== undefined &&
-//         numericPrice <= desiredPrice
-//       ) {
-//         // Send alert
-//         await sendDiscordAlert(
-//           product.title ?? "Unknown Product",
-//           numericPrice,
-//           product.url
-//         );
-
-//         // Mark as alert sent
-//         product.alertSent = true;
-//         product.currentPrice = numericPrice;
-//         await product.save();
-
-//         console.log(`✅ Alert sent for ${product.title}`);
-//       } else {
-//         console.log(`ℹ️ ${product.title} still above desired price.`);
-//         product.currentPrice = numericPrice;
-//         await product.save();
-//       }
-//     } catch (err) {
-//       console.error(`❌ Failed to check product: ${product.title}`, err);
-//     }
-//   }
-// };
-
-// src/services/alert-checker.ts
 import { scrapeDarazProduct } from "./scraper";
 import { sendDiscordAlert } from "../bot/discordBot";
+import { User } from "../models/User";
+import { DiscordServer } from "../models/DiscordServer";
+import { Product } from "../models/Product";
 
-const hardcodedProducts = [
-  {
-    title:
-      "White Fashionable Women's Sport Running Shoes | Sneaker - 181 | Daraz.com.np",
-    url: "https://www.daraz.com.np/products/bf-dearhill-white-fashionable-sports-running-shoes-bf-sports-shoes-for-women-bf-181-i150591514-s1106559548.html?scm=1007.51610.379274.0&pvid=a51418d5-3307-4579-936a-d96ee5096459&search=flashsale&spm=a2a0e.tm80335409.FlashSale.d_150591514", // use real product
-    desiredPrice: 1099,
-    alertSent: false,
-    currentPrice: null as number | null,
-  },
-  {
-    title:
-      "Unisex BOSTON COTTON PRINTED T-SHIRT ( Men & Women ) | Daraz.com.np",
-    url: "https://www.daraz.com.np/products/unisex-boston-cotton-printed-t-shirt-men-women-i393696052-s1706727176.html?scm=1007.51610.379274.0&pvid=80b8128f-db6b-4e81-9e1d-745a8dd2fa56&search=flashsale&spm=a2a0e.tm80335409.FlashSale.d_393696052", // use real product
-    desiredPrice: 398,
-    alertSent: false,
-    currentPrice: null as number | null,
-  },
-];
-
-export const checkProductPrices = async () => {
+export const checkProductPrices = async (userId: string) => {
   console.log("🔁 Checking product prices...");
 
-  for (const product of hardcodedProducts) {
+  const user = await User.findById(userId);
+  if (!user) {
+    console.error(`❌ User with ID ${userId} not found.`);
+    return;
+  }
+
+  console.log(`🔍 Fetching Discord servers for user: ${userId}`);
+
+  const discordServers = await DiscordServer.find({
+    userId: user._id,
+    botAlertStatus: true,
+    channelId: { $exists: true, $ne: "" },
+  });
+
+  console.log(
+    `🔍 Found ${discordServers.length} Discord servers with active bot alerts.`
+  );
+
+  if (discordServers.length === 0) {
+    console.log("ℹ️ No Discord servers with active bot alerts and channels.");
+    return;
+  }
+
+  const trackedProducts = await Product.find({
+    userId: user._id,
+    alertSent: false,
+    isActive: true,
+  });
+
+  if (trackedProducts.length === 0) {
+    console.log("ℹ️ No active tracked products for this user.");
+    return;
+  }
+
+  for (const product of trackedProducts) {
     try {
-      console.log(`Checking product: ${product.title}`);
+      console.log(`🔎 Checking product: ${product.title}`);
+
       if (!product.url) {
-        console.warn(`Product ${product.title} has no URL, skipping.`);
+        console.warn(`⚠️ Product ${product.title} has no URL, skipping.`);
         continue;
       }
 
-      const scraped = await scrapeDarazProduct(product.url);
-      if (!scraped) continue;
+      const scraped = await scrapeDarazProduct(
+        product.url,
+        product.ecommercePlatform
+      );
+      if (!scraped) {
+        console.warn(`⚠️ Failed to scrape ${product.title}, skipping.`);
+        continue;
+      }
+
       const { price } = scraped;
-      const numericPrice = price !== null ? Number(price) : null;
       const desiredPrice = product.desiredPrice;
 
-      if (
-        numericPrice !== null &&
-        !isNaN(numericPrice) &&
-        desiredPrice !== null &&
-        numericPrice <= desiredPrice &&
-        !product.alertSent
-      ) {
-        await sendDiscordAlert(product.title, numericPrice, product.url);
+      if (!price || isNaN(price)) {
+        console.warn(
+          `⚠️ Invalid price scraped for ${product.title}, skipping.`
+        );
+        continue;
+      }
+
+      if (!desiredPrice || isNaN(desiredPrice)) {
+        console.warn(
+          `⚠️ Invalid desired price for ${product.title}, skipping.`
+        );
+        continue;
+      }
+
+      if (price < desiredPrice && !product.alertSent) {
+        console.log(
+          `✅ Price drop detected for ${product.title}: Rs. ${price} (Desired: Rs. ${desiredPrice})`
+        );
+
+        for (const server of discordServers) {
+          try {
+            await sendDiscordAlert(
+              product.title ?? "Unknown Product",
+              price,
+              product.url,
+              server.channelId ?? "",
+              user._id.toString(),
+              product.originalPrice ?? 0,
+              product.desiredPrice ?? 0,
+              product.currency ?? "Rs.",
+              product.ecommercePlatform ?? "daraz",
+              product.mainImageUrl[0] ?? "",
+              product.discountPrice ?? ""
+            );
+            server.alertCount += 1;
+            await server.save();
+          } catch (sendErr) {
+            console.error(
+              `❌ Failed to send alert to server ${server.serverName}:`,
+              sendErr
+            );
+          }
+        }
 
         product.alertSent = true;
-        product.currentPrice =
-          typeof numericPrice === "number" && !isNaN(numericPrice)
-            ? numericPrice
-            : 0;
+        product.currentPrice = price;
 
         console.log(`✅ Alert sent for ${product.title}`);
       } else {
         console.log(`ℹ️ ${product.title} still above desired price.`);
-        product.currentPrice =
-          typeof numericPrice === "number" && !isNaN(numericPrice)
-            ? numericPrice
-            : 0;
+        product.currentPrice = price;
       }
+
+      await product.save();
+
+      // Optional throttle (to reduce scraping bans)
+      // await new Promise((res) => setTimeout(res, 500));
     } catch (err) {
       console.error(`❌ Failed to check product: ${product.title}`, err);
+      continue;
     }
   }
 };

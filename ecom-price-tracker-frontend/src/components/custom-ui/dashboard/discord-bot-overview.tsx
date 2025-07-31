@@ -33,11 +33,14 @@ import { toast } from "sonner";
 import { useUserStore } from "@/lib/zustand/useUserStore";
 import useAuthStore from "@/lib/zustand/authStore";
 import { signOut } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 
 export default function DiscordBotOverview() {
   const [isLoading, setIsLoading] = useState(true);
+  const [isInviting, setIsInviting] = useState(false);
   const [servers, setServers] = useState<any[]>([]);
   const hasFetched = useRef(false);
+  const isConnected = useRef(false);
   const fetchDiscordServers = async () => {
     const response = await fetch("/api/discord/fetch-servers", {
       method: "GET",
@@ -62,6 +65,7 @@ export default function DiscordBotOverview() {
     setIsLoading(false);
     toast.success("Discord servers fetched successfully");
   };
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (hasFetched.current) return;
@@ -69,6 +73,16 @@ export default function DiscordBotOverview() {
     setIsLoading(true);
     fetchDiscordServers();
   }, []);
+
+  useEffect(() => {
+    if (isConnected.current) return;
+    isConnected.current = true;
+    const connected = searchParams.get("connected");
+    if (connected) {
+      toast.success("Discord server connected successfully");
+      return;
+    }
+  }, [searchParams]);
 
   const ServerCards = ({ server }: { server: any }) => {
     const [localDialogOpen, setLocalDialogOpen] = useState(false);
@@ -418,14 +432,19 @@ export default function DiscordBotOverview() {
                     </div>
                     <Button
                       onClick={async () => {
+                        setIsInviting(true);
                         const res = await fetch("/api/discord/invite-link");
                         const data = await res.json();
                         window.location.href = data.url;
                       }}
                       className="w-full bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 cursor-pointer"
+                      disabled={isInviting}
                     >
                       <Bot className="w-4 h-4 mr-2" />
                       Add to Discord Server
+                      {isInviting && (
+                        <Loader className="w-4 h-4 ml-2 animate-spin" />
+                      )}
                     </Button>
                   </div>
                 </CardContent>

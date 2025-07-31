@@ -192,7 +192,7 @@ export default function TrackedProductOverview() {
     };
     return (
       <Card className="hover:shadow-lg transition-shadow">
-        <CardContent className="p-6">
+        <CardContent className="">
           <div className="flex items-start space-x-4">
             <Image
               src={product.mainImageUrl[0] || "/placeholder.png"}
@@ -206,7 +206,7 @@ export default function TrackedProductOverview() {
               }}
             />
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2" title={product.title}>
                 {product.title}
               </h3>
               <div className="flex items-center space-x-2 mb-2">

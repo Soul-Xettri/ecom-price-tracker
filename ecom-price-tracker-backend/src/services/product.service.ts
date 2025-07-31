@@ -313,16 +313,6 @@ class ProductService {
       mainImageUrl,
     } = data;
 
-    console.log("Scraped product data:", {
-      title,
-      price,
-      currency,
-      originalPrice,
-      discountPrice,
-      imageUrls,
-      mainImageUrl,
-    });
-
     if (price === null || price === 0) {
       throw new BadRequestError(
         "Could not extract valid price from the product page"

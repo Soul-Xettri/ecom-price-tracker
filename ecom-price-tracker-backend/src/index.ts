@@ -1,12 +1,11 @@
 import express from "express";
 import dotenv from "dotenv";
 import "express-async-errors";
-import { scrapeDarazProduct } from "./services/scraper";
 import productRoutes from "./routes/productRoutes";
 import authRoutes from "./routes/auth.route";
 import settingRoutes from "./routes/setting.route";
 import discordRoutes from "./routes/discord.route";
-import { checkProductPrices } from "./services/alert-checker";
+import alertsRoutes from "./routes/alerts.route";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -17,6 +16,7 @@ import mongoConnection from "./config/dbconnection";
 import morgan from "morgan";
 import requestIp from "request-ip";
 import authMiddleware from "./middleware/authMiddleware";
+import cronJob from "./scripts/cronjob";
 
 dotenv.config();
 
@@ -43,17 +43,9 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/discord", authMiddleware, discordRoutes);
 app.use("/api/v1/product", authMiddleware, productRoutes);
 app.use("/api/v1/settings", authMiddleware, settingRoutes);
+app.use("/api/v1/alerts", authMiddleware, alertsRoutes);
 app.use("/healthCheck", healthCheckApp);
 app.use(errorHandlerMiddleware);
-app.get("/test-scrape", async (_req, res) => {
-  const testUrl =
-    "https://www.daraz.com.np/products/unisex-boston-cotton-printed-t-shirt-men-women-i393696052-s1706727176.html?scm=1007.51610.379274.0&pvid=80b8128f-db6b-4e81-9e1d-745a8dd2fa56&search=flashsale&spm=a2a0e.tm80335409.FlashSale.d_393696052";
-  const result = await scrapeDarazProduct(testUrl);
-  res.json(result);
-});
-
-// setInterval(checkProductPrices, 5 * 60 * 1000);
-// checkProductPrices();
 
 app.all("*", (req, res, next) => {
   res.status(404).json({
@@ -69,6 +61,8 @@ const server = app.listen(PORT, async () => {
     console.log(`Running on ${process.env.NODE_ENV} server`);
     await mongoConnection();
     console.log(`Server started at port ${PORT} and MongoDB connected`);
+    await cronJob.start();
+    console.log("Cron job started successfully");
   } catch (error) {
     console.error("MongoDB connection failed:", error);
     server.close(() => {

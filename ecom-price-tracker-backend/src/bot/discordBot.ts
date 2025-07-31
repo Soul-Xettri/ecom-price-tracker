@@ -1,8 +1,13 @@
-// Discord bot logic
-// src/bot/discordBot.ts
-import { channel } from "diagnostics_channel";
-import { Client, GatewayIntentBits } from "discord.js";
+import {
+  Client,
+  GatewayIntentBits,
+  EmbedBuilder,
+  TextChannel,
+  NewsChannel,
+} from "discord.js";
 import dotenv from "dotenv";
+import { Alert } from "../models/alertsModel";
+import { Setting } from "../models/settings";
 dotenv.config();
 
 const client = new Client({
@@ -10,33 +15,102 @@ const client = new Client({
 });
 
 client.once("ready", () => {
-  console.log(`🤖 Discord bot ready as ${client.user?.tag}`);
+  console.log(`🤖 Discord bot ready as ${client.user?.tag} on bot service`);
 });
 
 client.login(process.env.DISCORD_BOT_TOKEN);
 
-// Message Sender
+// Enhanced Message Sender with Embed
 export const sendDiscordAlert = async (
   title: string,
   price: number,
-  url: string
+  url: string,
+  channelId: string,
+  userId: string,
+  originalPrice: number,
+  desiredPrice: number,
+  currency: string,
+  ecommercePlatform: string,
+  imageUrl?: string,
+  discount?: string
 ) => {
-  if (!process.env.ALERT_CHANNEL_ID) {
-    throw new Error("ALERT_CHANNEL_ID is not defined in environment variables.");
+  if (!channelId) {
+    console.error("❌ Channel ID is required to send a Discord alert.");
+    return;
   }
-  console.log("channel id", process.env.ALERT_CHANNEL_ID);
-  const channel = await client.channels.fetch(process.env.ALERT_CHANNEL_ID as string);
-  console.log("channel", channel);
-  if (
-    channel &&
-    (channel.type === 0 || channel.type === 5) // 0: TextChannel, 5: NewsChannel
-  ) {
-    await (
-      channel as
-        | import("discord.js").TextChannel
-        | import("discord.js").NewsChannel
-    ).send(
-      `📢 **Price Drop Alert!**\n**${title}** is now **Rs. ${price}**\n🔗 ${url}`
+
+  try {
+    const settings = await Setting.findOne({ userId });
+
+    const channel = await client.channels.fetch(channelId);
+
+    if (
+      channel &&
+      (channel.type === 0 || channel.type === 5) // 0: TextChannel, 5: NewsChannel
+    ) {
+      const embed = new EmbedBuilder()
+        .setTitle("📉 Price Drop Alert!")
+        .setDescription(
+          `[${title}](${url}) is now available at **Rs. ${price}**`
+        )
+        .setColor(0x00cc66)
+        .addFields(
+          originalPrice && originalPrice > price
+            ? {
+                name: "Original Price",
+                value: `~~${currency} ${originalPrice}~~`,
+                inline: true,
+              }
+            : { name: "Original Price", value: "N/A", inline: true },
+          {
+            name: "Current Price",
+            value: `${currency} ${price}`,
+            inline: true,
+          },
+          {
+            name: "Desired Price",
+            value: `${currency} ${desiredPrice}`,
+            inline: true,
+          },
+          discount
+            ? { name: "Discount", value: `${discount}`, inline: true }
+            : { name: "\u200B", value: "\u200B", inline: true },
+          ecommercePlatform
+            ? { name: "Platform", value: ecommercePlatform, inline: true }
+            : { name: "\u200B", value: "\u200B", inline: true }
+        )
+        .setTimestamp()
+        .setFooter({ text: "Price Tracker Bot" });
+
+      if (imageUrl) {
+        embed.setThumbnail(imageUrl);
+      }
+
+      await (channel as TextChannel | NewsChannel).send({ embeds: [embed] });
+
+      await Alert.create({
+        userId,
+        serverId: channel.guild.id,
+        serverName: channel.guild.name,
+        serverIcon: channel.guild.iconURL() || "",
+        channelId: channel.id,
+        channelName: channel.name,
+        title,
+        price,
+        originalPrice,
+        desiredPrice,
+        currency,
+        discount,
+        productUrl: url,
+        imageUrl,
+        ecommercePlatform,
+        emailAlert: settings?.emailAlert || false,
+      });
+    }
+  } catch (err) {
+    console.error(
+      `❌ Failed to send alert to Discord channel ${channelId}`,
+      err
     );
   }
 };

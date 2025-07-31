@@ -8,6 +8,12 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
 });
 
+client.once("ready", () => {
+  console.log(`🤖 Discord bot ready as ${client.user?.tag} on discord service`);
+});
+
+client.login(process.env.DISCORD_BOT_TOKEN);
+
 class DiscordService {
   static async saveServer(
     userId: string,
@@ -72,7 +78,6 @@ class DiscordService {
     if (!server) {
       throw new DataNotFoundError("Discord server not found");
     }
-    client.login(process.env.DISCORD_BOT_TOKEN);
     if (!client.isReady()) {
       throw new BadRequestError("Discord client is not ready");
     }
@@ -135,14 +140,27 @@ class DiscordService {
   }
 
   static async deleteServer(userId: string, serverId: string) {
-    const server = await DiscordServer.findOneAndDelete({
-      _id: serverId,
-      userId,
-    });
+    const server = await DiscordServer.findOne({ _id: serverId, userId });
     if (!server) {
       throw new DataNotFoundError("Discord server not found");
     }
-    return server;
+    if (server.botAlertStatus && server.channelId) {
+      if (!client.isReady()) {
+        throw new BadRequestError("Discord client is not ready");
+      }
+      const guild = await client.guilds.fetch(server.serverId);
+      if (!guild) throw new DataNotFoundError("Discord server not found");
+      const channel = await guild.channels.fetch(server.channelId);
+      if (channel && channel.isTextBased()) {
+        await channel.send("❌ Bot alerts have been disabled for this server.");
+      }
+    }
+    await DiscordServer.findOneAndDelete({
+      _id: serverId,
+      userId,
+    });
+
+    return;
   }
 }
 
