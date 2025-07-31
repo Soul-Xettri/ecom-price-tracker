@@ -110,7 +110,6 @@ export default function TrackedProductOverview() {
     fetchTrackedProducts();
     toast.success("Product tracking started successfully");
   };
-  
 
   const TrackedProductCard = ({ product }: { product: any }) => {
     const [localDialogOpen, setLocalDialogOpen] = useState(false);
@@ -206,7 +205,10 @@ export default function TrackedProductOverview() {
               }}
             />
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2" title={product.title}>
+              <h3
+                className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2"
+                title={product.title}
+              >
                 {product.title}
               </h3>
               <div className="flex items-center space-x-2 mb-2">
@@ -231,14 +233,14 @@ export default function TrackedProductOverview() {
                       : "secondary"
                   }
                   className={
-                    !product.isActive
+                    !product.isActive && !product.alertSent
                       ? "bg-gradient-to-r from-red-500 to-red-600"
                       : product.alertSent
                       ? "bg-gradient-to-r from-green-500 to-green-600"
                       : "bg-gradient-to-r from-indigo-500 to-cyan-500"
                   }
                 >
-                  {!product.isActive
+                  {!product.isActive && !product.alertSent
                     ? "Stopped"
                     : product.alertSent
                     ? "Price Dropped!"
@@ -350,11 +352,13 @@ export default function TrackedProductOverview() {
                     </div>
                   </div>
                   {product.alertSent && (
-                    <div className="text-xs text-gray-400 mt-1">
-                      Note: This product has already sent an alert for a price
-                      drop which means you cannot change the target price or
-                      tracking status.
-                    </div>
+                    <p>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <strong>Note:</strong> This product has already sent an
+                        alert for a price drop which means you cannot change the
+                        target price or tracking status.
+                      </span>
+                    </p>
                   )}
                 </DialogHeader>
                 <hr />
@@ -408,7 +412,11 @@ export default function TrackedProductOverview() {
                       <Button
                         type="button"
                         onClick={handleStopTracking}
-                        disabled={stopTrackingInProgress || isUpdating}
+                        disabled={
+                          stopTrackingInProgress ||
+                          isUpdating ||
+                          product.alertSent
+                        }
                         className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 cursor-pointer"
                       >
                         Start Tracking
@@ -462,10 +470,12 @@ export default function TrackedProductOverview() {
                       </DialogDescription>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    Note: Scraping may take a few minutes depending on the
-                    network and platform.
-                  </div>
+                  <p>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <strong>Note:</strong> Scraping may take a few minutes
+                      depending on the network and platform.
+                    </span>
+                  </p>
                 </DialogHeader>
                 <hr />
                 <div className="grid grid-cols-1 md:grid-cols-3 ">

@@ -119,19 +119,17 @@ export default function SettingOverview() {
 
                     <div className="relative">
                       <select
-                        className="w-full mt-1 p-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white appearance-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors cursor-pointer"
+                        className="w-full mt-1 p-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white appearance-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors cursor-not-allowed opacity-60"
                         value={settings.frequency}
-                        onChange={async (e) => {
-                          const newSettings = {
-                            ...settings,
-                            frequency: e.target.value,
-                          };
-                          setSettings(newSettings);
-                          await updateSettings(newSettings);
+                        disabled
+                        onChange={() => {
+                          toast.info(
+                            "Nice try! For now, tracking happens every night at 12am. We need more money and resources for other options 😅"
+                          );
                         }}
                       >
+                        <option value="daily">Daily (12am)</option>
                         <option value="hourly">Hourly</option>
-                        <option value="daily">Daily</option>
                         <option value="weekly">Weekly</option>
                         <option value="monthly">Monthly</option>
                       </select>
@@ -154,6 +152,15 @@ export default function SettingOverview() {
                       </div>
                     </div>
                   </div>
+                  <p>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <strong>Note:</strong> Changing frequency is disabled for
+                      now. We’d love to let you track prices hourly, weekly, or
+                      monthly as per your needs, but my wallet is crying and our
+                      servers need a nap. For now, tracking happens every night
+                      at 12am!
+                    </span>
+                  </p>
                 </CardContent>
               </Card>
 

@@ -157,9 +157,7 @@ export default function DashboardOverview() {
       console.log("total:", total);
       console.log("product.originalPrice:", product.originalPrice);
       console.log("product.currentPrice:", product.currentPrice);
-      return (
-        total + (product.originalPrice - product.currentPrice)
-      );
+      return total + (product.originalPrice - product.currentPrice);
     }
     return total;
   }, 0);
@@ -179,9 +177,12 @@ export default function DashboardOverview() {
             <p className="text-gray-600 dark:text-gray-400">
               Here's what's happening with your tracked products
             </p>
-            <div className="text-xs text-gray-400 mt-1">
-              Note: The money saved calculation may include multiple currencies.
-            </div>
+            <p>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                <strong>Note:</strong> The money saved calculation may include
+                multiple currencies.
+              </span>
+            </p>
           </div>
 
           {/* Stats Cards */}
@@ -265,10 +266,12 @@ export default function DashboardOverview() {
                 Paste a product URL from Amazon, Daraz, or Flipkart to start
                 tracking
               </CardDescription>
-              <div className="text-xs text-gray-400 mt-1">
-                Note: Scraping may take a few minutes depending on the network
-                and platform.
-              </div>
+              <p>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  <strong>Note:</strong> Scraping may take a few minutes
+                  depending on the network and platform.
+                </span>
+              </p>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 ">

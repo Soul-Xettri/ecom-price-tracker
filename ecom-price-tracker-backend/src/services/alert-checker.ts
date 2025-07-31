@@ -89,6 +89,8 @@ export const checkProductPrices = async (userId: string) => {
               product.url,
               server.channelId ?? "",
               user._id.toString(),
+              user.email ?? "",
+              user.name ?? "Unknown User",
               product.originalPrice ?? 0,
               product.desiredPrice ?? 0,
               product.currency ?? "Rs.",
@@ -107,6 +109,7 @@ export const checkProductPrices = async (userId: string) => {
         }
 
         product.alertSent = true;
+        product.isActive = false;
         product.currentPrice = price;
 
         console.log(`✅ Alert sent for ${product.title}`);

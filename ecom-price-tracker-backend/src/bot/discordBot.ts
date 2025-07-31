@@ -8,6 +8,7 @@ import {
 import dotenv from "dotenv";
 import { Alert } from "../models/alertsModel";
 import { Setting } from "../models/settings";
+import MailService from "../mail/mail.service";
 dotenv.config();
 
 const client = new Client({
@@ -27,6 +28,8 @@ export const sendDiscordAlert = async (
   url: string,
   channelId: string,
   userId: string,
+  email: string,
+  username: string,
   originalPrice: number,
   desiredPrice: number,
   currency: string,
@@ -87,6 +90,41 @@ export const sendDiscordAlert = async (
       }
 
       await (channel as TextChannel | NewsChannel).send({ embeds: [embed] });
+
+      if (settings?.emailAlert) {
+        let savings = null;
+        if (originalPrice && originalPrice > price) {
+          const savingsAmount = originalPrice - price;
+          const savingsPercentage = (
+            (savingsAmount / originalPrice) *
+            100
+          ).toFixed(1);
+          savings = {
+            amount: savingsAmount,
+            percentage: savingsPercentage,
+          };
+        }
+        try {
+          await MailService.sendProductPriceDropAlert(
+            title,
+            price,
+            url,
+            email,
+            username,
+            originalPrice,
+            desiredPrice,
+            currency,
+            ecommercePlatform,
+            savings,
+            imageUrl,
+            discount,
+          );
+        } catch (error) {
+          settings.emailAlert = false; // Disable email alerts on error
+          console.error("❌ Failed to send email alert:", error);
+          // Do not end the process; just log the error and continue
+        }
+      }
 
       await Alert.create({
         userId,
