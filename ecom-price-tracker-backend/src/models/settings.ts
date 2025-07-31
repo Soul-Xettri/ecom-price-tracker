@@ -9,7 +9,7 @@ const settingSchema = new mongoose.Schema(
     },
     frequency: {
       type: String,
-      enum: ["daily", "weekly", "monthly"],
+      enum: ["hourly", "daily", "weekly", "monthly"],
       default: "daily",
     },
     emailAlert: {

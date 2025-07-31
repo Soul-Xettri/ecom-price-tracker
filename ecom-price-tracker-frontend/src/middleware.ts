@@ -26,7 +26,8 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token, // simple auth check
+      // authorized: ({ token }) => !!token, // simple auth check
+      authorized: () => true, // always allow access, you can customize this logic
     },
   }
 );

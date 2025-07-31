@@ -9,7 +9,10 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import useAuthStore from "@/lib/zustand/authStore";
+import { useUserStore } from "@/lib/zustand/useUserStore";
 import { Loader } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -26,6 +29,12 @@ export default function SettingOverview() {
         "Content-Type": "application/json",
       },
     });
+    if (response.status === 401 || response.status === 403) {
+      useUserStore.getState().logout();
+      useAuthStore.getState().logout();
+      await signOut({ callbackUrl: "/?session-expired=true" });
+      return;
+    }
     if (!response.ok) {
       setIsLoading(false);
       toast.error("Failed to fetch settings");
@@ -62,6 +71,12 @@ export default function SettingOverview() {
       },
       body: JSON.stringify(newSettings),
     });
+    if (response.status === 401 || response.status === 403) {
+      useUserStore.getState().logout();
+      useAuthStore.getState().logout();
+      await signOut({ callbackUrl: "/?session-expired=true" });
+      return;
+    }
     if (!response.ok) {
       toast.error("Failed to update settings");
       return;
@@ -112,6 +127,7 @@ export default function SettingOverview() {
                           await updateSettings(newSettings);
                         }}
                       >
+                        <option value="hourly">Hourly</option>
                         <option value="daily">Daily</option>
                         <option value="weekly">Weekly</option>
                         <option value="monthly">Monthly</option>

@@ -95,7 +95,7 @@ export default function Header({ title }: { title: string }) {
                         setIsLoading(true);
                         useUserStore.getState().logout();
                         useAuthStore.getState().logout();
-                        await signOut({ callbackUrl: "/" });
+                        await signOut({ callbackUrl: "/?logout=true" });
                       }}
                     >
                       <span className="font-semibold">Logout</span>

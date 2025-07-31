@@ -5,7 +5,7 @@ export const SettingDto = [
     .optional()
     .isString()
     .withMessage("Frequency must be a string")
-    .isIn(["daily", "weekly", "monthly"])
+    .isIn(["hourly", "daily", "weekly", "monthly"])
     .withMessage("Frequency must be one of: daily, weekly, monthly"),
   body("emailAlert")
     .optional()

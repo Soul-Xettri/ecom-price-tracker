@@ -21,7 +21,7 @@ import {
   Loader,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useUserStore } from "@/lib/zustand/useUserStore";
 import useAuthStore from "@/lib/zustand/authStore";
 import Cookies from "js-cookie";
@@ -81,6 +81,12 @@ export default function DashboardOverview() {
         "Content-Type": "application/json",
       },
     });
+    if (response.status === 401 || response.status === 403) {
+      useUserStore.getState().logout();
+      useAuthStore.getState().logout();
+      await signOut({ callbackUrl: "/?session-expired=true" });
+      return;
+    }
     if (!response.ok) {
       toast.error("Failed to load dashboard data");
       return;
@@ -91,7 +97,14 @@ export default function DashboardOverview() {
   };
 
   useEffect(() => {
-    fetchTrackedProducts();
+    const saveAndFetch = async () => {
+      await saveUserToBackend();
+      // Wait for user to be saved before fetching products
+      await fetchTrackedProducts();
+    };
+    if (session) {
+      saveAndFetch();
+    }
   }, [session]);
 
   const handleAddProduct = async () => {
@@ -116,6 +129,13 @@ export default function DashboardOverview() {
       }),
     });
     const data = await response.json();
+    if (response.status === 401 || response.status === 403) {
+      setIsScraping(false);
+      useUserStore.getState().logout();
+      useAuthStore.getState().logout();
+      await signOut({ callbackUrl: "/?session-expired=true" });
+      return;
+    }
     if (!response.ok) {
       setIsScraping(false);
       toast.error(data.error || "Failed to track product");
@@ -322,7 +342,7 @@ export default function DashboardOverview() {
                 <div className="space-y-4">
                   {trackedProducts.slice(0, 3).map((product) => (
                     <div
-                      key={product.id}
+                      key={product._id}
                       className="flex items-center space-x-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow"
                     >
                       <Image

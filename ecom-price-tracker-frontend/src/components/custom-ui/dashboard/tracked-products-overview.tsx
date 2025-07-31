@@ -25,6 +25,9 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import Image from "next/image";
 import Link from "next/link";
+import { useUserStore } from "@/lib/zustand/useUserStore";
+import useAuthStore from "@/lib/zustand/authStore";
+import { signOut } from "next-auth/react";
 
 export default function TrackedProductOverview() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -42,6 +45,13 @@ export default function TrackedProductOverview() {
         "Content-Type": "application/json",
       },
     });
+    if (response.status === 401 || response.status === 403) {
+      setIsLoading(false);
+      useUserStore.getState().logout();
+      useAuthStore.getState().logout();
+      await signOut({ callbackUrl: "/?session-expired=true" });
+      return;
+    }
     if (!response.ok) {
       setIsLoading(false);
       toast.error("Failed to fetch tracked products");
@@ -80,6 +90,13 @@ export default function TrackedProductOverview() {
       }),
     });
     const data = await response.json();
+    if (response.status === 401 || response.status === 403) {
+      setIsScraping(false);
+      useUserStore.getState().logout();
+      useAuthStore.getState().logout();
+      await signOut({ callbackUrl: "/?session-expired=true" });
+      return;
+    }
     if (!response.ok) {
       setIsScraping(false);
       toast.error(data.error || "Failed to track product");
@@ -122,6 +139,13 @@ export default function TrackedProductOverview() {
         }),
       });
       const data = await response.json();
+      if (response.status === 401 || response.status === 403) {
+        setIsUpdating(false);
+        useUserStore.getState().logout();
+        useAuthStore.getState().logout();
+        await signOut({ callbackUrl: "/?session-expired=true" });
+        return;
+      }
       if (!response.ok) {
         setIsUpdating(false);
         toast.error(data.error || "Failed to update desired price");
@@ -144,6 +168,13 @@ export default function TrackedProductOverview() {
         }),
       });
       const data = await response.json();
+      if (response.status === 401 || response.status === 403) {
+        setStopTrackingInProgress(false);
+        useUserStore.getState().logout();
+        useAuthStore.getState().logout();
+        await signOut({ callbackUrl: "/?session-expired=true" });
+        return;
+      }
       if (!response.ok) {
         setStopTrackingInProgress(false);
         toast.error(data.error || "Failed to stop tracking");

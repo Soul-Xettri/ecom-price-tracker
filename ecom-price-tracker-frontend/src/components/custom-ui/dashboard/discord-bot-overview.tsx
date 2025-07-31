@@ -30,6 +30,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { useUserStore } from "@/lib/zustand/useUserStore";
+import useAuthStore from "@/lib/zustand/authStore";
+import { signOut } from "next-auth/react";
 
 export default function DiscordBotOverview() {
   const [isLoading, setIsLoading] = useState(true);
@@ -41,6 +44,13 @@ export default function DiscordBotOverview() {
         "Content-Type": "application/json",
       },
     });
+    if (response.status === 401 || response.status === 403) {
+      setIsLoading(false)
+      useUserStore.getState().logout();
+      useAuthStore.getState().logout();
+      await signOut({ callbackUrl: "/?session-expired=true" });
+      return;
+    }
     if (!response.ok) {
       setIsLoading(false);
       toast.error("Failed to fetch Discord servers");
@@ -112,6 +122,13 @@ export default function DiscordBotOverview() {
       });
 
       const data = await response.json();
+      if (response.status === 401 || response.status === 403) {
+        setIsUpdating(false);
+        useUserStore.getState().logout();
+        useAuthStore.getState().logout();
+        await signOut({ callbackUrl: "/?session-expired=true" });
+        return;
+      }
       if (!response.ok) {
         setIsUpdating(false);
         toast.error(data.error || "Failed to update Discord server");
@@ -138,6 +155,13 @@ export default function DiscordBotOverview() {
       });
 
       const data = await response.json();
+      if (response.status === 401 || response.status === 403) {
+        setDeleteInProgress(false);
+        useUserStore.getState().logout();
+        useAuthStore.getState().logout();
+        await signOut({ callbackUrl: "/?session-expired=true" });
+        return;
+      }
       if (!response.ok) {
         setDeleteInProgress(false);
         toast.error(data.error || "Failed to delete Discord server");

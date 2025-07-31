@@ -17,12 +17,25 @@ import { useUserStore } from "@/lib/zustand/useUserStore";
 import { Bot, TrendingDown } from "lucide-react";
 import { signIn, signOut } from "next-auth/react";
 import Link from "next/link";
-import { use, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { use, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function TopNav() {
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const user = useUserStore((state) => state.user);
   const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const sessionExpired = searchParams.get("session-expired");
+    const logout = searchParams.get("logout");
+    if (sessionExpired) {
+      toast.error("Login session expired. Please log in again.");
+    }
+    if (logout) {
+      toast.success("Logged out successfully.");
+    }
+  }, [searchParams]);
   return (
     <>
       <nav className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50 max-md:hidden">
@@ -118,7 +131,7 @@ export default function TopNav() {
                             setIsLoading(true);
                             useUserStore.getState().logout();
                             useAuthStore.getState().logout();
-                            await signOut({ callbackUrl: "/" });
+                            await signOut({ callbackUrl: "/?logout=true" });
                           }}
                         >
                           <span className="font-semibold">Logout</span>
