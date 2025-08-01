@@ -67,6 +67,10 @@ const alertSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    currency: {
+      type: String,
+      default: "$",
+    },
   },
   {
     timestamps: true,

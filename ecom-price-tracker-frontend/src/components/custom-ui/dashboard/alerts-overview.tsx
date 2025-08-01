@@ -204,7 +204,7 @@ export default function AlertsOverview() {
                     </span>
                     <span className="font-bold text-lg text-gray-900 dark:text-white">
                       <span className="line-through text-gray-400">
-                        Rs. {alert.originalPrice}
+                        {alert.currency} {alert.originalPrice}
                       </span>
                     </span>
                   </div>
@@ -215,7 +215,7 @@ export default function AlertsOverview() {
                     Current Price:
                   </span>
                   <span className="font-bold text-lg text-green-600 dark:text-green-400">
-                    Rs. {alert.price}
+                    {alert.currency} {alert.price}
                   </span>
                 </div>
 
@@ -225,7 +225,7 @@ export default function AlertsOverview() {
                   </span>
                   <span className="font-medium text-indigo-600 dark:text-indigo-400 flex items-center">
                     <Target className="w-3 h-3 mr-1" />
-                    Rs. {alert.desiredPrice}
+                    {alert.currency} {alert.desiredPrice}
                   </span>
                 </div>
 
@@ -235,7 +235,7 @@ export default function AlertsOverview() {
                       You Saved:
                     </span>
                     <span className="font-medium text-orange-600 dark:text-orange-400">
-                      Rs. {savings.amount} ({savings.percentage}% off)
+                      {alert.currency} {savings.amount} ({savings.percentage}% off)
                     </span>
                   </div>
                 )}
