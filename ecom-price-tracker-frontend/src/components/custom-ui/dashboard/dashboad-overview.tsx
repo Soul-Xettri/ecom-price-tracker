@@ -38,7 +38,7 @@ export default function DashboardOverview() {
   const setTokens = useAuthStore((state) => state.setTokens);
   const [trackedProducts, setTrackedProducts] = useState<any[]>([]);
   const [isScraping, setIsScraping] = useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState("daraz");
+  const [selectedPlatform, setSelectedPlatform] = useState("wallmart");
   const hasFetched = useRef(false);
 
   const saveUserToBackend = async () => {
@@ -119,6 +119,10 @@ export default function DashboardOverview() {
       toast.error("Target price must be greater than 0.");
       return;
     }
+    let productUrlToUse = newProductUrl;
+    if (selectedPlatform === "bestbuy") {
+      productUrlToUse = newProductUrl + "&intl=nosplash";
+    }
     setIsScraping(true);
     const response = await fetch("/api/product/scrape-product", {
       method: "POST",
@@ -126,7 +130,7 @@ export default function DashboardOverview() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        url: newProductUrl,
+        url: productUrlToUse,
         ecommercePlatform: selectedPlatform,
         desiredPrice: parseFloat(targetPrice),
       }),
@@ -260,7 +264,7 @@ export default function DashboardOverview() {
                 <span>Add New Product to Track</span>
               </CardTitle>
               <CardDescription>
-                Paste a product URL from Amazon, Daraz, or Flipkart to start
+                Paste a product URL from Wallmart, Ebay, or Bestbuy to start
                 tracking
               </CardDescription>
               <p>
@@ -272,8 +276,8 @@ export default function DashboardOverview() {
               </p>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 ">
-                {["daraz", "ebay", "flipkart"].map((platform) => (
+              <div className="grid grid-cols-1 md:grid-cols-4 ">
+                {["wallmart", "ebay", "bestbuy", "amazon"].map((platform) => (
                   <div className="flex items-center" key={platform}>
                     <Input
                       type="radio"
@@ -373,11 +377,13 @@ export default function DashboardOverview() {
                         <Badge
                           variant="outline"
                           className={
-                            product.ecommercePlatform === "daraz"
-                              ? "bg-orange-400"
-                              : product.ecommercePlatform === "ebay"
-                              ? "bg-green-400"
-                              : "bg-blue-400"
+                          product.ecommercePlatform === "wallmart"
+                            ? "bg-[#0071ce] text-white" // Walmart blue
+                            : product.ecommercePlatform === "ebay"
+                            ? "bg-[#e53238] text-white" // eBay red
+                            : product.ecommercePlatform === "bestbuy"
+                            ? "bg-[#003b64] text-white" // Best Buy blue
+                            : "bg-[#FF9900] text-white" // amazon orange
                           }
                         >
                           {product.ecommercePlatform.toUpperCase()}

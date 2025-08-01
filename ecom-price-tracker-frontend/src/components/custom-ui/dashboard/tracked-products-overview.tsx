@@ -3,14 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Plus,
-  ExternalLink,
-  Bot,
-  Loader,
-  Edit,
-  ReceiptEuroIcon,
-} from "lucide-react";
+import { Plus, ExternalLink, Bot, Loader, Edit } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -33,10 +26,11 @@ export default function TrackedProductOverview() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newProductUrl, setNewProductUrl] = useState("");
   const [targetPrice, setTargetPrice] = useState("");
-  const [selectedPlatform, setSelectedPlatform] = useState("daraz");
+  const [selectedPlatform, setSelectedPlatform] = useState("wallmart");
   const [isScraping, setIsScraping] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [trackedProducts, setTrackedProducts] = useState<any[]>([]);
+  const [zipCode, setZipCode] = useState("10001"); // Default zip code for Amazon
   const hasFetched = useRef(false);
 
   const fetchTrackedProducts = async () => {
@@ -80,6 +74,14 @@ export default function TrackedProductOverview() {
       toast.error("Target price must be greater than 0.");
       return;
     }
+    let productUrlToUse = newProductUrl;
+    if (selectedPlatform === "bestbuy") {
+      productUrlToUse = newProductUrl + "&intl=nosplash";
+    }
+    if (selectedPlatform === "amazon" && !zipCode) {
+      toast.error("Please enter a valid zip code for Amazon tracking.");
+      return;
+    }
     setIsScraping(true);
     const response = await fetch("/api/product/scrape-product", {
       method: "POST",
@@ -87,7 +89,7 @@ export default function TrackedProductOverview() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        url: newProductUrl,
+        url: productUrlToUse,
         ecommercePlatform: selectedPlatform,
         desiredPrice: parseFloat(targetPrice),
       }),
@@ -215,11 +217,13 @@ export default function TrackedProductOverview() {
                 <Badge
                   variant="outline"
                   className={
-                    product.ecommercePlatform === "daraz"
-                      ? "bg-orange-400"
+                    product.ecommercePlatform === "wallmart"
+                      ? "bg-[#0071ce] text-white" // Walmart blue
                       : product.ecommercePlatform === "ebay"
-                      ? "bg-green-400"
-                      : "bg-blue-400"
+                      ? "bg-[#e53238] text-white" // eBay red
+                      : product.ecommercePlatform === "bestbuy"
+                      ? "bg-[#003b64] text-white" // Best Buy blue
+                      : "bg-[#FF9900] text-white" // amazon orange
                   }
                 >
                   {product.ecommercePlatform.toUpperCase()}
@@ -465,8 +469,8 @@ export default function TrackedProductOverview() {
                       </DialogTitle>
 
                       <DialogDescription className="font-[400] text-[14px] text-gray-500">
-                        Paste a product URL from Ebay, Daraz, or Flipkart to
-                        start tracking
+                        Paste a product URL from Amazon, Wallmart, Ebay, or
+                        Bestbuy to start tracking
                       </DialogDescription>
                     </div>
                   </div>
@@ -479,8 +483,8 @@ export default function TrackedProductOverview() {
                   </p>
                 </DialogHeader>
                 <hr />
-                <div className="grid grid-cols-1 md:grid-cols-3 ">
-                  {["daraz", "ebay", "flipkart"].map((platform) => (
+                <div className="grid grid-cols-1 md:grid-cols-4 ">
+                  {["wallmart", "ebay", "bestbuy", "amazon"].map((platform) => (
                     <div className="flex items-center" key={platform}>
                       <Input
                         type="radio"
@@ -497,16 +501,36 @@ export default function TrackedProductOverview() {
                     </div>
                   ))}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="md:col-span-2">
-                    <Label htmlFor="product-url">Product URL</Label>
-                    <Input
-                      id="product-url"
-                      placeholder="https://www.ebay.com/product-name/dp/..."
-                      value={newProductUrl}
-                      onChange={(e: any) => setNewProductUrl(e.target.value)}
-                      className="mt-1"
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                  {selectedPlatform === "amazon" && (
+                    <div className="md:col-span-2 gap-4">
+                      <Label htmlFor="zip-code">
+                        Zip Code{" "}
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          <strong>Note:</strong> Need zip code for Amazon
+                          tracking
+                        </span>
+                      </Label>
+                      <Input
+                        id="zip-code"
+                        placeholder="10001"
+                        value={zipCode}
+                        onChange={(e: any) => setZipCode(e.target.value)}
+                        className="mt-1 w-40"
+                      />
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <Label htmlFor="product-url">Product URL</Label>
+                      <Input
+                        id="product-url"
+                        placeholder="https://www.ebay.com/product-name/dp/..."
+                        value={newProductUrl}
+                        onChange={(e: any) => setNewProductUrl(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="target-price">Target Price ($)</Label>

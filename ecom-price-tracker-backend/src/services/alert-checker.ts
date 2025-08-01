@@ -52,7 +52,8 @@ export const checkProductPrices = async (userId: string) => {
 
       const scraped = await scrapeDarazProduct(
         product.url,
-        product.ecommercePlatform
+        product.ecommercePlatform,
+        product.zipCode ?? "10001"
       );
       if (!scraped) {
         console.warn(`⚠️ Failed to scrape ${product.title}, skipping.`);

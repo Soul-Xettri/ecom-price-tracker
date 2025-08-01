@@ -10,7 +10,7 @@ const productSchema = new mongoose.Schema(
     url: String,
     ecommercePlatform: {
       type: String,
-      enum: ["daraz", "amazon", "flipkart", "ebay"],
+      enum: ["daraz", "amazon", "flipkart", "ebay", "bestbuy", "wallmart"],
       default: "daraz",
     },
     title: String,
@@ -22,12 +22,16 @@ const productSchema = new mongoose.Schema(
     desiredPrice: Number,
     currency: {
       type: String,
-      default: "Rs",
+      default: "$",
     },
     imageUrls: [String],
     mainImageUrl: [String],
     alertSent: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
+    zipCode: {
+      type: String,
+      default: "10001",
+    },
   },
   { timestamps: true }
 );
